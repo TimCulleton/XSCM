@@ -1,0 +1,25 @@
+{
+  "name": "xscm",
+  "version": "1.0.0",
+  "description": "Web App tool to simplify the internal SCM tool",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/XeroSkill/XSCM.git"
+  },
+  "author": "Tim Culleton",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/XeroSkill/XSCM/issues"
+  },
+  "homepage": "https://github.com/XeroSkill/XSCM#readme",
+  "dependencies": {
+    "yarn": "^0.27.5"
+  },
+  "devDependencies": {
+    "typescript": "^2.4.1"
+  }
+}
