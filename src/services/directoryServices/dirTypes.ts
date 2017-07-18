@@ -5,6 +5,7 @@
 //forcing git to change..
 
 export interface IDirData {
+    root: string;
     files: string[];
-    dirs: Map<string, IDirData>
+    dirs: IDirData[];
 }

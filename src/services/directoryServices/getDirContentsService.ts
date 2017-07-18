@@ -11,57 +11,72 @@ import path = require("path");
 
 export class DirService {
 
-    public static getDirContents(dir: string, dirData?: IDirData): Promise<IDirData> {
-
-        dirData = dirData || DirService._createDirData();
+    /**
+     * Fetch all the contents of the specified dir path. This will recursively drill down
+     * till the path is exhausted.
+     * @param {string} dirPath
+     * @returns {Promise<IDirData>}
+     */
+    public static getDirContents(dirPath: string): Promise<IDirData> {
 
         return new Promise<IDirData>((resolve, reject) => {
+            if (fs.existsSync(dirPath)) {
 
-            fs.exists(dir, exists => {
-                if(exists) {
+                let dirData = DirService.createDirData(dirPath);
+                let dirStats = fs.lstatSync(dirPath);
 
-                    let pathStat = fs.lstatSync(dir);
+                if (dirStats.isDirectory()) {
 
-                    if(pathStat.isFile()) {
-                        dirData.files.push(dir);
-                        resolve(dirData);
-                    } else if (pathStat.isDirectory()) {
+                    fs.readdir(dirPath, (err, files) => {
 
-                        fs.readdir(dir, (error, files) => {
+                        let promises: Promise<IDirData>[] = [];
 
-                            if(!error) {
+                        for (let file of files) {
+                            let childPath = path.resolve(dirPath, file);
+                            let childStat = fs.lstatSync(childPath);
 
-                                let childDirData = DirService._createDirData();
-                                dirData.dirs.set(dir, childDirData);
-
-                                let promises: Promise<IDirData>[] = [];
-                                for(let file of files) {
-                                    let childPath = path.resolve(dir, file);
-                                    promises.push(DirService.getDirContents(childPath, childDirData));
-                                }
-
-                                Promise.all(promises).then(data => {
-                                    console.log(data);
-                                    resolve(dirData);
-                                }, reject);
-
+                            //Wrap all the directory fetches to get a promise all
+                            if (childStat.isDirectory()) {
+                                //Drill down to get the contents
+                                promises.push(DirService.getDirContents(childPath));
                             } else {
-                                reject(error);
+                                dirData.files.push(file);
                             }
-                        });
-                    }
-                } else {
-                    reject(`Path does not exist: ${dir}`);
+                        }
+
+                        //Once all the children have been fetched add the data to the current level
+                        Promise.all(promises).then(dirContents => {
+
+                            for (let dirContent of dirContents) {
+                                dirData.dirs.push(dirContent);
+                            }
+
+                            resolve(dirData);
+                        }, reject);
+                    })
+
+                    //Realistically should not be hit...
+                } else if (dirStats.isFile()) {
+                    dirData.files.push(dirPath);
+                    resolve(dirData);
                 }
-            })
+
+            } else {
+                reject(`Path does not exist: ${dirPath}`);
+            }
         });
     }
 
-
-    private static _createDirData(): IDirData {
+    /**
+     * Create a simple dir data object
+     * @param {string} root
+     * @returns {IDirData}
+     */
+    private static createDirData(root: string): IDirData {
         return {
+            root: root,
             files: [],
-            dirs: new Map<string, IDirData>()
-        };
+            dirs: []
+        }
     }
 }
