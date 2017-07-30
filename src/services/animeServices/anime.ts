@@ -6,6 +6,9 @@ import fs = require("fs");
 
 
 const REGEX_VIDEO_CHECK = /\.avi$|\.mkv$|\.mp4$/;
+
+//Checks file name to see if it is an op/ed
+const REGEX_OP_ENDING_CHECK = /\WOP\d+\W|\WED\d+\W|\WNCED\W|\WNCOP\W/;
 //Tests normal format '1x01' and S0E01 format
 const REGEX_KODI_FORMAT = /^\d+x\d+|S\d+E\d+/;
 const REGEX_EXTRACT_EP_NUM = /\s(\d+)\s|_(\d+)_|-\s(\d+)/;
@@ -68,7 +71,7 @@ export class Anime implements IAnime {
 
                     for(let file of files) {
                         let episode = path.basename(file);
-                        if(!REGEX_KODI_FORMAT.test(episode)) {
+                        if(!REGEX_KODI_FORMAT.test(episode) && !REGEX_OP_ENDING_CHECK.test(episode)) {
                             let candidates = REGEX_EXTRACT_EP_NUM.exec(episode);
                             let epNum: number = null;
                             for(let canidate of candidates) {
@@ -163,7 +166,7 @@ export class Anime implements IAnime {
         let episodes: string[] = [];
 
         for(let episode of season.files) {
-            if(REGEX_VIDEO_CHECK.test(episode)) {
+            if(REGEX_VIDEO_CHECK.test(episode )) {
                 episodes.push(path.resolve(season.root, episode));
             }
         }
